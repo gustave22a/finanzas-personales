@@ -2,7 +2,7 @@
   "name": "Mis Finanzas",
   "short_name": "Finanzas",
   "description": "Control de ingresos, gastos y ahorros personales",
-  "start_url": "/",
+  "start_url": "/finanzas-personales/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#C41E2A",

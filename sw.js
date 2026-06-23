@@ -1,5 +1,11 @@
-const CACHE = 'mis-finanzas-v3';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
+const CACHE = 'mis-finanzas-v4';
+const ASSETS = [
+  '/finanzas-personales/',
+  '/finanzas-personales/index.html',
+  '/finanzas-personales/manifest.json',
+  '/finanzas-personales/icon-192.svg',
+  '/finanzas-personales/icon-512.svg'
+];
 
 // Install: cache all static assets
 self.addEventListener('install', e => {

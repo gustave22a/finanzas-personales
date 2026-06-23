@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#C41E2A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis Finanzas">
+<title>Mis Finanzas</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<style>
+:root {
+  --navy:   #1A3A5C;
+  --blue:   #2E6DA4;
+  --sky:    #D6E4F0;
+  --green:  #1D6A3A;
+  --green-l:#D5F0DC;
+  --red:    #8B1A1A;
+  --red-l:  #FAD7D7;
+  --amber:  #FFF2CC;
+  --amber-d:#B8860B;
+  --orange: #E06C00;
+  --purple: #6A0DAD;
+  --purple-l:#EDE0F5;
+  --gray-0: #FFFFFF;
+  --gray-1: #F7F8FA;
+  --gray-2: #ECEEF2;
+  --gray-3: #D0D5DD;
+  --gray-4: #98A2B3;
+  --gray-5: #667085;
+  --gray-6: #344054;
+  --gray-7: #1D2939;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(26,58,92,0.10);
+  --shadow-lg: 0 8px 32px rgba(26,58,92,0.16);
+  --font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: var(--font); background: var(--gray-1); color: var(--gray-7); }
+
+/* ── App shell ─────────────────────────────────────────────── */
+#app { display: flex; flex-direction: column; height: 100%; max-width: 480px; margin: 0 auto; background: var(--gray-1); position: relative; }
+
+/* ── Top bar ─────────────────────────────────────────────────*/
+.topbar { background: var(--navy); padding: env(safe-area-inset-top, 12px) 20px 14px; flex-shrink: 0; }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; }
+.topbar h1 { color: #fff; font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+.topbar-sub { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 2px; }
+.topbar-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); }
+.topbar-sync { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; padding: 4px; margin-right: 8px; }
+.topbar-right { display: flex; align-items: center; gap: 0; }
+
+/* ── Scrollable content ───────────────────────────────────── */
+#content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 90px; }
+
+/* ── Bottom nav ──────────────────────────────────────────── */
+.bottomnav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--gray-0); border-top: 1px solid var(--gray-2); display: flex; padding-bottom: env(safe-area-inset-bottom, 0); z-index: 100; box-shadow: 0 -4px 20px rgba(26,58,92,0.08); }
+.bnav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0 8px; border: none; background: none; cursor: pointer; color: var(--gray-4); font-size: 11px; font-weight: 500; transition: color 0.15s; }
+.bnav-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+.bnav-btn.active { color: var(--navy); }
+.bnav-btn.active svg { stroke: var(--navy); }
+.bnav-fab { flex: 1; display: flex; justify-content: center; align-items: center; padding: 6px 0 8px; }
+.fab { width: 52px; height: 52px; border-radius: 50%; background: var(--navy); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); margin-top: -18px; transition: transform 0.15s, box-shadow 0.15s; }
+.fab:active { transform: scale(0.94); }
+.fab svg { width: 24px; height: 24px; stroke: #fff; stroke-width: 2; fill: none; }
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card { background: var(--gray-0); border-radius: var(--radius); box-shadow: var(--shadow); margin: 12px 16px 0; padding: 16px; }
+.card-sm { padding: 12px 14px; }
+
+/* ── Home screen ─────────────────────────────────────────────*/
+.balance-card { background: linear-gradient(135deg, var(--navy) 0%, #2E5A8C 100%); border-radius: var(--radius); margin: 16px 16px 0; padding: 20px; color: #fff; }
+.balance-label { font-size: 12px; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.balance-amount { font-size: 36px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+.balance-amount.pos { color: #6EE7A0; }
+.balance-amount.neg { color: #FCA5A5; }
+.balance-row { display: flex; gap: 12px; margin-top: 16px; }
+.balance-mini { flex: 1; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; }
+.balance-mini-lbl { font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+.balance-mini-val { font-size: 15px; font-weight: 600; }
+.balance-mini-val.ing { color: #6EE7A0; }
+.balance-mini-val.eg { color: #FCA5A5; }
+
+.section-title { font-size: 13px; font-weight: 600; color: var(--gray-5); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 16px 8px; }
+
+/* ── Transaction list ────────────────────────────────────── */
+.tx-list { margin: 0 16px; }
+.tx-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--gray-2); }
+.tx-item:last-child { border-bottom: none; }
+.tx-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.tx-icon.ing { background: var(--green-l); }
+.tx-icon.eg-fijo { background: var(--red-l); }
+.tx-icon.eg-var { background: var(--amber); }
+.tx-icon.inv { background: var(--purple-l); }
+.tx-info { flex: 1; min-width: 0; }
+.tx-cat { font-size: 14px; font-weight: 500; color: var(--gray-7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-det { font-size: 12px; color: var(--gray-4); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-monto { font-size: 15px; font-weight: 600; }
+.tx-monto.ing { color: var(--green); }
+.tx-monto.eg { color: var(--red); }
+.tx-medio { font-size: 11px; color: var(--gray-4); margin-top: 1px; }
+
+/* ── Pill badges ─────────────────────────────────────────── */
+.pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; }
+.pill-tc { background: var(--purple-l); color: var(--purple); }
+.pill-cuota { background: var(--sky); color: var(--blue); }
+
+/* ── Form screen ─────────────────────────────────────────── */
+.form-screen { padding: 16px; }
+.form-title { font-size: 20px; font-weight: 700; color: var(--gray-7); margin-bottom: 4px; }
+.form-sub { font-size: 13px; color: var(--gray-4); margin-bottom: 20px; }
+
+.tipo-toggle { display: flex; background: var(--gray-2); border-radius: 10px; padding: 3px; margin-bottom: 20px; }
+.tipo-opt { flex: 1; padding: 9px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; background: transparent; color: var(--gray-4); transition: all 0.18s; }
+.tipo-opt.active-ing { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(29,106,58,0.35); }
+.tipo-opt.active-eg { background: var(--red); color: #fff; box-shadow: 0 2px 8px rgba(139,26,26,0.35); }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-5); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--gray-3);
+  border-radius: var(--radius-sm); font-size: 15px; color: var(--gray-7);
+  background: var(--gray-0); appearance: none; -webkit-appearance: none;
+  font-family: var(--font); transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--navy); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.monto-wrap { position: relative; }
+.monto-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: 600; color: var(--gray-5); pointer-events: none; }
+.monto-wrap input { padding-left: 28px; font-size: 20px; font-weight: 700; }
+.cuotas-section { background: var(--sky); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
+.cuotas-section-title { font-size: 11px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.cierre-info { font-size: 12px; color: var(--blue); margin-top: 8px; padding: 8px 10px; background: rgba(46,109,164,0.1); border-radius: 6px; }
+
+.btn-submit { width: 100%; padding: 16px; background: var(--navy); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; letter-spacing: -0.2px; transition: transform 0.12s, opacity 0.12s; }
+.btn-submit:active { transform: scale(0.98); opacity: 0.9; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Success toast ────────────────────────────────────────── */
+.toast { position: fixed; top: max(env(safe-area-inset-top, 0px) + 10px, 60px); left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--gray-7); color: #fff; font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 999; box-shadow: var(--shadow-lg); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* ── TC alert card ───────────────────────────────────────── */
+.tc-alerts { margin: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.tc-alert { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-sm); }
+.tc-alert.warn { background: var(--amber); }
+.tc-alert.urgent { background: var(--red-l); }
+.tc-alert.ok { background: var(--green-l); }
+.tc-alert-icon { font-size: 20px; flex-shrink: 0; }
+.tc-alert-info { flex: 1; }
+.tc-alert-name { font-size: 13px; font-weight: 600; }
+.tc-alert-det { font-size: 12px; color: var(--gray-5); margin-top: 1px; }
+.tc-alert-dias { font-size: 22px; font-weight: 700; flex-shrink: 0; }
+.tc-alert.warn .tc-alert-dias { color: var(--amber-d); }
+.tc-alert.urgent .tc-alert-dias { color: var(--red); }
+.tc-alert.ok .tc-alert-dias { color: var(--green); }
+
+/* ── Stats screen ────────────────────────────────────────── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px; }
+.stat-card { background: var(--gray-0); border-radius: var(--radius-sm); padding: 14px; box-shadow: var(--shadow); }
+.stat-lbl { font-size: 11px; color: var(--gray-4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.stat-val { font-size: 20px; font-weight: 700; color: var(--gray-7); }
+.stat-val.pos { color: var(--green); }
+.stat-val.neg { color: var(--red); }
+
+.bar-chart { margin: 0 16px; }
+.bar-row { margin-bottom: 10px; }
+.bar-label-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-6); margin-bottom: 4px; }
+.bar-track { height: 8px; background: var(--gray-2); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+/* ── Google auth ─────────────────────────────────────────── */
+#auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 32px; text-align: center; }
+.auth-logo { width: 72px; height: 72px; background: var(--navy); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: var(--shadow-lg); }
+.auth-logo svg { width: 40px; height: 40px; stroke: #fff; stroke-width: 1.8; fill: none; }
+.auth-title { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; color: var(--gray-7); margin-bottom: 8px; }
+.auth-sub { font-size: 14px; color: var(--gray-4); line-height: 1.6; margin-bottom: 32px; max-width: 280px; }
+.btn-google { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: var(--gray-0); border: 1.5px solid var(--gray-3); border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; color: var(--gray-7); cursor: pointer; box-shadow: var(--shadow); transition: transform 0.12s; margin-bottom: 12px; width: 100%; justify-content: center; }
+.btn-google:active { transform: scale(0.97); }
+.btn-google svg { width: 20px; height: 20px; }
+.btn-demo { background: none; border: none; color: var(--blue); font-size: 14px; cursor: pointer; padding: 8px; text-decoration: underline; }
+.auth-steps { background: var(--sky); border-radius: var(--radius-sm); padding: 16px; margin-top: 16px; text-align: left; }
+.auth-steps-title { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.auth-step { font-size: 13px; color: var(--gray-6); margin-bottom: 6px; line-height: 1.5; }
+
+/* ── Config screen ───────────────────────────────────────── */
+.cfg-section { margin: 0 16px 16px; }
+.cfg-section-title { font-size: 12px; font-weight: 700; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.cfg-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--gray-2); }
+.cfg-row:last-child { border-bottom: none; }
+.cfg-row-label { font-size: 14px; color: var(--gray-7); }
+.cfg-row-sub { font-size: 12px; color: var(--gray-4); margin-top: 1px; }
+.cfg-row-val { font-size: 14px; font-weight: 600; color: var(--navy); }
+.cfg-input { width: 100px; padding: 7px 10px; border: 1.5px solid var(--gray-3); border-radius: 8px; font-size: 14px; text-align: right; font-family: var(--font); }
+
+/* ── Offline banner ──────────────────────────────────────── */
+.offline-banner { background: var(--amber); color: var(--amber-d); font-size: 12px; font-weight: 600; text-align: center; padding: 6px; display: none; }
+.offline-banner.show { display: block; }
+
+/* ── Sync overlay ────────────────────────────────────────── */
+.sync-overlay { position: fixed; inset: 0; background: rgba(26,58,92,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.sync-overlay.show { opacity: 1; pointer-events: all; }
+.sync-spinner { width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px; }
+.sync-msg { color: #fff; font-size: 15px; font-weight: 500; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Scrollbar hide ──────────────────────────────────────── */
+#content::-webkit-scrollbar { display: none; }
+
+/* ── Month selector ──────────────────────────────────────── */
+.month-sel { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 0; }
+.month-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-4); padding: 4px 8px; }
+.month-label { font-size: 16px; font-weight: 700; color: var(--gray-7); }
+
+/* ── Empty states ────────────────────────────────────────── */
+.empty { text-align: center; padding: 40px 20px; color: var(--gray-4); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-txt { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Auth screen -->
+<div id="auth-screen" style="display:none">
+  <div class="auth-logo">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+  <div class="auth-title">Mis Finanzas</div>
+  <div class="auth-sub">Controlá tus ingresos, gastos y ahorros. Todo sincronizado con tu Google Sheet.</div>
+  <button class="btn-google" onclick="handleGoogleSignIn()">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+    Continuar con Google
+  </button>
+  <button class="btn-demo" onclick="startDemo()">Probar sin cuenta (modo demo)</button>
+  <div class="auth-steps">
+    <div class="auth-steps-title">Antes de conectar:</div>
+    <div class="auth-step">1. Subí el Excel a Google Drive y convertilo a Sheets</div>
+    <div class="auth-step">2. Copiá la URL del Sheet (aparecerá un campo para pegarlo)</div>
+    <div class="auth-step">3. Autorizá el acceso cuando Google lo pida</div>
+  </div>
+</div>
+
+<!-- Sheet URL input (paso intermedio) -->
+<div id="sheet-url-screen" style="display:none; padding:24px; max-width:480px; margin:0 auto;">
+  <div style="margin-top:env(safe-area-inset-top,20px)"></div>
+  <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Conectar Google Sheet</div>
+  <div style="font-size:14px;color:var(--gray-4);margin-bottom:24px;line-height:1.6;">Pegá la URL de tu Google Sheet (el archivo Excel que convertiste a Sheets).</div>
+  <div class="field">
+    <label>URL del Google Sheet</label>
+    <input type="url" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/...">
+  </div>
+  <div style="font-size:12px;color:var(--gray-4);margin-bottom:20px;padding:12px;background:var(--sky);border-radius:8px;line-height:1.6;">
+    <strong>Cómo obtener la URL:</strong><br>
+    Abrí el Sheet → Compartir → Copiar enlace. Asegurate de darle acceso de edición a tu cuenta de Google.
+  </div>
+  <button class="btn-submit" onclick="saveSheetUrl()">Conectar Sheet</button>
+  <button class="btn-demo" style="display:block;text-align:center;margin-top:12px;" onclick="startDemo()">Omitir y usar modo demo</button>
+</div>
+
+<!-- Main app -->
+<div id="app" style="display:none">
+  <div class="offline-banner" id="offline-banner">Sin conexión — los cambios se guardarán cuando vuelva internet</div>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="topbar-inner">
+          <h1 id="topbar-title">Mis Finanzas</h1>
+        </div>
+        <div class="topbar-sub" id="topbar-sub"></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-sync" onclick="syncNow()" title="Sincronizar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        </button>
+        <div class="topbar-avatar" id="user-avatar" onclick="showScreen('config')">?</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- Screens injected here -->
+  </div>
+
+  <nav class="bottomnav">
+    <button class="bnav-btn active" id="bnav-home" onclick="showScreen('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inicio
+    </button>
+    <button class="bnav-btn" id="bnav-txs" onclick="showScreen('txs')">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Movimientos
+    </button>
+    <div class="bnav-fab">
+      <button class="fab" onclick="showScreen('nueva')" aria-label="Nueva transacción">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    <button class="bnav-btn" id="bnav-stats" onclick="showScreen('stats')">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Resumen
+    </button>
+    <button class="bnav-btn" id="bnav-config" onclick="showScreen('config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="sync-overlay" id="sync-overlay">
+  <div class="sync-spinner"></div>
+  <div class="sync-msg" id="sync-msg">Sincronizando...</div>
+</div>
+
+<script>
+// ─── CATEGORÍAS Y LISTAS ─────────────────────────────────────────────────
+const CATS_ING = ["Sueldo Neto","Sueldo 2 / Pareja","Freelance / Honorarios","Alquileres cobrados","Intereses Plazo Fijo","Dividendos / Acciones","Renta FCI","Intereses Cripto/Staking","Venta de activos","Otros ingresos"];
+const CATS_GF  = ["Alquiler / Hipoteca","Expensas","Luz (electricidad)","Gas","Agua / ABL","Internet / Cable","Streaming (Netflix/Disney+...)","Teléfono celular","Cuota colegio / Universidad","Seguro auto","Seguro vida / hogar","Prepaga / Medicina","Cuota préstamo","Cuota tarjeta crédito","Otros gastos fijos"];
+const CATS_GV  = ["Supermercado / Almacén","Verdulería / Carnicería","Farmacia / Medicamentos","Combustible","Peajes / Estacionamiento","Patente auto","Mantenimiento auto","Salidas / Restaurantes","Delivery / Pedidos Ya","Ropa / Calzado","Electrónica / Tecnología","Hogar / Ferretería","Educación / Cursos","Deporte / Gimnasio","Viajes / Vacaciones","Cuidado personal","Mascotas","Regalos","Ahorro / Inversión","Otros variables"];
+const MEDIOS   = ["Efectivo","Débito Galicia","Débito Santander","Débito BBVA","Débito Nación","Débito Brubank","Débito Naranja X","Crédito Visa","Crédito Mastercard","Crédito Amex","Crédito Naranja","Mercado Pago","Ualá","Lemon","Belo","Transferencia bancaria","USDT / Cripto"];
+const BANCOS   = ["N/A","Galicia","Santander","BBVA","Nación","Provincia","Ciudad","Macro","HSBC","Brubank","Naranja X","Mercado Pago","Ualá","Lemon","Belo","Otro"];
+const TIPOS    = ["Ingreso","Gasto Fijo","Gasto Variable","Transferencia","Ahorro/Inversión"];
+const ETIQUETAS= ["Sin etiqueta","Viaje Europa 2025","Obra/Renovación","Auto nuevo","Vacaciones verano","Educación hijos","Proyecto personal","Otro"];
+const TARJETAS_DEFAULT = ["Crédito Visa","Crédito Mastercard","Crédito Amex","Crédito Naranja"];
+const ETIQUETAS_DEFAULT= ["Sin etiqueta","Viaje Europa 2025","Obra/Renovación","Auto nuevo","Vacaciones verano","Educación hijos","Proyecto personal","Otro"];
+
+// Retorna listas dinámicas del Sheet (si se sincronizaron) o las hardcoded por defecto.
+// IMPORTANTE: siempre llamar estas funciones al renderizar — nunca guardar el resultado
+// en una variable al inicio, porque el Sheet puede actualizarse durante la sesión.
+function getTarjetas() { return STATE.tarjetasSheet?.length  ? STATE.tarjetasSheet  : TARJETAS_DEFAULT; }
+function getMedios()   { return STATE.mediosSheet?.length    ? STATE.mediosSheet    : MEDIOS; }
+function getEtiquetas(){ return STATE.etiquetasSheet?.length ? STATE.etiquetasSheet : ETIQUETAS_DEFAULT; }
+function getBancos()   { return STATE.bancosSheet?.length    ? STATE.bancosSheet    : BANCOS; }
+function getCuentas()  {
+  if (STATE.cuentasSheet?.length) return STATE.cuentasSheet;
+  // Si no sincronizaste aún, mostrar cuentas de ejemplo para orientar
+  return ['CA $ Banco G','CA USD Banco G','TC Visa Banco G',
+          'Billetera MP G','Efectivo $ G','— Sincronizá para ver tus cuentas —'];
+}
+// getCuentas() retorna la lista de cuentas propias desde _LISTAS col L
+function getCatsIng()  { return STATE.catsIngSheet?.length   ? STATE.catsIngSheet   : CATS_ING; }
+function getCatsGF()   { return STATE.catsGFSheet?.length    ? STATE.catsGFSheet    : CATS_GF; }
+function getCatsGV()   { return STATE.catsGVSheet?.length    ? STATE.catsGVSheet    : CATS_GV; }
+// Para detectar si un medio es TC: cualquier medio que empiece con "Crédito"
+const TARJETAS = TARJETAS_DEFAULT; // mantener para compatibilidad con funciones existentes
+
+const CAT_EMOJIS = {
+  "Sueldo Neto":"💼","Sueldo 2 / Pareja":"💼","Freelance / Honorarios":"💻","Alquileres cobrados":"🏠",
+  "Intereses Plazo Fijo":"🏦","Dividendos / Acciones":"📈","Renta FCI":"📊","Intereses Cripto/Staking":"₿",
+  "Venta de activos":"💰","Otros ingresos":"💵","Alquiler / Hipoteca":"🏠","Expensas":"🏢",
+  "Luz (electricidad)":"⚡","Gas":"🔥","Agua / ABL":"💧","Internet / Cable":"📡",
+  "Streaming (Netflix/Disney+...)":"📺","Teléfono celular":"📱","Cuota colegio / Universidad":"🎓",
+  "Seguro auto":"🚗","Seguro vida / hogar":"🛡️","Prepaga / Medicina":"🏥","Cuota préstamo":"🏦",
+  "Cuota tarjeta crédito":"💳","Otros gastos fijos":"📋","Supermercado / Almacén":"🛒",
+  "Verdulería / Carnicería":"🥬","Farmacia / Medicamentos":"💊","Combustible":"⛽",
+  "Peajes / Estacionamiento":"🚗","Patente auto":"📄","Mantenimiento auto":"🔧",
+  "Salidas / Restaurantes":"🍽️","Delivery / Pedidos Ya":"🛵","Ropa / Calzado":"👟",
+  "Electrónica / Tecnología":"📱","Hogar / Ferretería":"🏠","Educación / Cursos":"📚",
+  "Deporte / Gimnasio":"🏋️","Viajes / Vacaciones":"✈️","Cuidado personal":"💇",
+  "Mascotas":"🐾","Regalos":"🎁","Ahorro / Inversión":"💎","Otros variables":"📦",
+};
+
+// ─── ESTADO DE LA APP ─────────────────────────────────────────────────────
+let STATE = {
+  user: null,
+  sheetId: null,
+  accessToken: null,
+  transactions: [],
+  offlineQueue: [],
+  tcConfig: { "Crédito Visa": 25, "Crédito Mastercard": 20, "Crédito Amex": 15, "Crédito Naranja": 25 },
+  usdBlue: 1300,
+  inflacion: 0.04,
+  currentScreen: 'home',
+  viewMonth: new Date().getMonth(),
+  viewYear: new Date().getFullYear(),
+  isOnline: navigator.onLine,
+  isDemo: false,
+};
+
+// Demo transactions
+const DEMO_TX = [
+  { id:'d1', fecha:'2025-01-05', cat:'Sueldo Neto', desc:'Sueldo enero', medio:'Transferencia bancaria', banco:'Galicia', cuotas:1, ncuota:1, monto:350000, tipo:'Ingreso', etiqueta:'Sin etiqueta', comp:'' },
+  { id:'d2', fecha:'2025-01-10', cat:'Alquiler / Hipoteca', desc:'Enero', medio:'Transferencia bancaria', banco:'Galicia', cuotas:1, ncuota:1, monto:120000, tipo:'Gasto Fijo', etiqueta:'Sin etiqueta', comp:'' },
+  { id:'d3', fecha:'2025-01-12', cat:'Supermercado / Almacén', desc:'Jumbo semanal', medio:'Crédito Visa', banco:'Galicia', cuotas:1, ncuota:1, monto:28500, tipo:'Gasto Variable', etiqueta:'Sin etiqueta', comp:'TX00123' },
+  { id:'d4', fecha:'2025-01-15', cat:'Combustible', desc:'YPF carga', medio:'Débito Galicia', banco:'Galicia', cuotas:1, ncuota:1, monto:15200, tipo:'Gasto Variable', etiqueta:'Sin etiqueta', comp:'' },
+  { id:'d5', fecha:'2025-01-25', cat:'Intereses Plazo Fijo', desc:'PF Galicia', medio:'Transferencia bancaria', banco:'Galicia', cuotas:1, ncuota:1, monto:12300, tipo:'Ingreso', etiqueta:'Sin etiqueta', comp:'' },
+  { id:'d6', fecha:'2025-01-28', cat:'Electrónica / Tecnología', desc:'TV Samsung 55" — 12 ctas', medio:'Crédito Visa', banco:'Galicia', cuotas:12, ncuota:1, monto:480000, tipo:'Gasto Variable', etiqueta:'Sin etiqueta', comp:'TX00200' },
+];
+
+// ─── UTILIDADES ────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n === undefined || n === null || isNaN(n)) return '$0';
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+function fmtShort(n) {
+  if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n);
+}
+function today() {
+  // Usar fecha LOCAL del dispositivo, no UTC (toISOString usa UTC y en Argentina
+  // a las 22hs del día 18 ya es el 19 en UTC, generando fechas incorrectas)
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function mesNombre(m) { return ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][m]; }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function toast(msg, type='success', duration=3500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = 'toast', duration);
+}
+
+function syncOverlay(show, msg='Sincronizando con Google Sheets...') {
+  document.getElementById('sync-overlay').classList.toggle('show', show);
+  document.getElementById('sync-msg').textContent = msg;
+}
+
+// ─── PERSISTENCIA LOCAL ────────────────────────────────────────────────────
+function saveLocal() {
+  localStorage.setItem('mf_txs', JSON.stringify(STATE.transactions));
+  localStorage.setItem('mf_queue', JSON.stringify(STATE.offlineQueue));
+  localStorage.setItem('mf_cfg', JSON.stringify({ tcConfig: STATE.tcConfig, usdBlue: STATE.usdBlue, inflacion: STATE.inflacion, cuentasSheet: STATE.cuentasSheet, mediosSheet: STATE.mediosSheet, etiquetasSheet: STATE.etiquetasSheet, tarjetasSheet: STATE.tarjetasSheet, bancosSheet: STATE.bancosSheet, catsIngSheet: STATE.catsIngSheet, catsGFSheet: STATE.catsGFSheet, catsGVSheet: STATE.catsGVSheet }));
+  if (STATE.sheetId) localStorage.setItem('mf_sheetId', STATE.sheetId);
+  if (STATE.user) localStorage.setItem('mf_user', JSON.stringify(STATE.user));
+}
+function loadLocal() {
+  const txs = localStorage.getItem('mf_txs');
+  const queue = localStorage.getItem('mf_queue');
+  const cfg = localStorage.getItem('mf_cfg');
+  const sheetId = localStorage.getItem('mf_sheetId');
+  const user = localStorage.getItem('mf_user');
+  if (txs) STATE.transactions = JSON.parse(txs);
+  if (queue) STATE.offlineQueue = JSON.parse(queue);
+  if (cfg) { const c=JSON.parse(cfg); Object.assign(STATE, c); }
+  if (sheetId) STATE.sheetId = sheetId;
+  if (user) STATE.user = JSON.parse(user);
+}
+
+// ─── GOOGLE AUTH ─────────────────────────────────────────────────────────
+function handleGoogleSignIn() {
+  // Usa Google Identity Services OAuth2 real
+  if (typeof google !== 'undefined' && google.accounts) {
+    if (!tokenClient) initGoogleAuth();
+    setTimeout(() => { if (tokenClient) tokenClient.requestAccessToken(); }, 300);
+  } else {
+    // GIS script no cargó aún, esperar
+    setTimeout(handleGoogleSignIn, 800);
+  }
+}
+
+function saveSheetUrl() {
+  const url = document.getElementById('sheet-url-input').value.trim();
+
+  // Detectar si pegaron la URL de Drive (archivo sin convertir) en vez de Sheets
+  if (url.includes('drive.google.com/file')) {
+    toast('Esa es la URL del archivo en Drive, no del Google Sheet. Abrí el archivo → clic derecho → Abrir con → Google Sheets → copiá la URL de ESA pestaña.', 'error', 6000);
+    return;
+  }
+
+  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) {
+    toast('URL no válida. Necesitás la URL del Google Sheet: docs.google.com/spreadsheets/d/...', 'error', 5000);
+    return;
+  }
+  STATE.sheetId = match[1];
+  if (!STATE.user || STATE.user.email === 'demo') {
+    STATE.user = { name: 'Usuario', email: 'usuario@gmail.com', initials: 'U' };
+  }
+  STATE.isDemo = false;
+  saveLocal();
+  launchApp();
+  toast('Sheet conectado. Sincronizando...', 'success');
+  setTimeout(() => syncFromSheet(), 800);
+}
+
+function startDemo() {
+  STATE.transactions = [...DEMO_TX];
+  STATE.isDemo = true;
+  STATE.user = { name: 'Demo', email: 'demo', initials: 'D' };
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('sheet-url-screen').style.display = 'none';
+  launchApp();
+  toast('Modo demo activo', 'success');
+}
+
+// ─── GOOGLE SHEETS API ────────────────────────────────────────────────────
+async function getAccessToken() {
+  if (STATE.accessToken) return STATE.accessToken;
+  // Solicitar token via Google Identity Services
+  return new Promise((resolve) => {
+    if (!tokenClient) initGoogleAuth();
+    if (!tokenClient) { resolve(null); return; }
+    const origCb = tokenClient.callback;
+    tokenClient.callback = (r) => {
+      tokenClient.callback = origCb;
+      if (!r.error) { STATE.accessToken = r.access_token; resolve(r.access_token); }
+      else { console.error('OAuth error:', r.error); resolve(null); }
+    };
+    tokenClient.requestAccessToken({ prompt: '' });
+  });
+}
+
+async function syncFromSheet() {
+  if (STATE.isDemo || !STATE.sheetId) return;
+  syncOverlay(true, 'Cargando transacciones...');
+  try {
+    const token = await getAccessToken();
+    if (!token) { syncOverlay(false); toast('No se pudo obtener autorización de Google. Volvé a iniciar sesión.', 'error'); return; }
+
+    // Leer Transacciones y _LISTAS en paralelo
+    const [resTX, resListas] = await Promise.all([
+      fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/${encodeURIComponent("'Transacciones'!A3:M1002")}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ),
+      fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/${encodeURIComponent("'_LISTAS'!A1:L130")}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    ]);
+
+    if (!resTX.ok) {
+      const errBody = await resTX.text();
+      console.error('Sheets API error', resTX.status, errBody);
+      let detalle = `HTTP ${resTX.status}`;
+      try {
+        const parsed = JSON.parse(errBody);
+        const msg = parsed.error?.message || '';
+        if (msg.toLowerCase().includes('not supported') || msg.toLowerCase().includes('xlsx')) {
+          detalle = 'El archivo no está convertido a Google Sheets. Abrilo en Drive → Abrir con → Google Sheets → copiá la URL de esa nueva pestaña.';
+        } else if (resTX.status === 403 || msg.toLowerCase().includes('permission')) {
+          detalle = 'Sin permiso. Revisá que iniciaste sesión con la cuenta correcta.';
+        } else if (resTX.status === 404 || msg.toLowerCase().includes('not found')) {
+          detalle = 'Sheet no encontrado. Verificá que la URL sea la del Google Sheet convertido.';
+        } else if (msg.toLowerCase().includes('unable to parse range')) {
+          detalle = 'No se encontró la hoja "Transacciones". Verificá que el Sheet tenga esa pestaña.';
+        } else {
+          detalle = msg || detalle;
+        }
+      } catch(_) {}
+      throw new Error(detalle);
+    }
+
+    // Procesar transacciones
+    const data = await resTX.json();
+    const rows = data.values || [];
+    STATE.transactions = rows
+      .filter(r => r[0] && r[9])
+      .map((r, i) => ({
+        id: `s${i}`,
+        fecha: excelDateToISO(r[0]),
+        cat: r[3] || '',
+        desc: r[4] || '',
+        medio: r[5] || '',
+        banco: r[6] || '',
+        cuotas: parseInt(r[7]) || 1,
+        ncuota: parseInt(r[8]) || 1,
+        monto: parseMontoARS(r[9]),
+        tipo: r[10] || '',
+        etiqueta: r[11] || 'Sin etiqueta',
+        comp: r[12] || '',
+      }));
+
+    // Procesar _LISTAS: leer TODAS las columnas A-L
+    if (resListas.ok) {
+      const listasData = await resListas.json();
+      const allRows = listasData.values || [];
+      console.log('_LISTAS total filas recibidas:', allRows.length);
+      console.log('_LISTAS fila 1 (cabecera):', allRows[0]);
+      console.log('_LISTAS fila 2 (primera data):', allRows[1]);
+      console.log('_LISTAS cols por fila:', allRows[1]?.length);
+      // Muestra col L (índice 11) de las primeras 5 filas de datos
+      console.log('_LISTAS col L (cuentas, idx 11):',
+        allRows.slice(1, 6).map(r => r[11]));
+      const lRows = allRows.slice(1); // saltar cabecera fila 1
+
+      // Col A (0): categorías ingreso
+      // Col B (1): categorías gasto fijo
+      // Col C (2): categorías gasto variable
+      // Col D (3): todas las categorías (auto desde A+B+C en el Sheet)
+      // Col E (4): tipos de medio
+      // Col F (5): instituciones/bancos
+      // Col G (6): medios completos (para desplegable Transacciones)
+      // Col H (7): redes de tarjeta
+      // Col I (8): tarjetas completas (para _CONFIG)
+      // Col J (9): etiquetas de proyecto
+      // Col K (10): tipos de transacción
+
+      const newCatsIng  = lRows.map(r => r[0]).filter(Boolean);
+      const newCatsGF   = lRows.map(r => r[1]).filter(Boolean);
+      const newCatsGV   = lRows.map(r => r[2]).filter(Boolean);
+      const newBancos   = lRows.map(r => r[5]).filter(Boolean);
+      const newCuentas  = lRows.map(r => r[11]).filter(Boolean);
+      const newMedios   = lRows.map(r => r[6]).filter(Boolean);
+      const newTarjetas = lRows.map(r => r[8]).filter(Boolean);
+      const newEtiquetas= lRows.map(r => r[9]).filter(Boolean);
+
+      // Guardar todo en STATE — siempre reemplazar (refleja cambios del Sheet)
+      if (newCatsIng.length > 0)  STATE.catsIngSheet  = newCatsIng;
+      if (newCatsGF.length > 0)   STATE.catsGFSheet   = newCatsGF;
+      if (newCatsGV.length > 0)   STATE.catsGVSheet   = newCatsGV;
+      if (newBancos.length > 0)   STATE.bancosSheet    = newBancos;
+      if (newCuentas.length > 0)  STATE.cuentasSheet   = newCuentas;
+      if (newMedios.length > 0)   STATE.mediosSheet    = newMedios;
+      if (newEtiquetas.length > 0) STATE.etiquetasSheet = newEtiquetas;
+      if (newTarjetas.length > 0) {
+        STATE.tarjetasSheet = newTarjetas;
+        newTarjetas.forEach(tc => { if (!STATE.tcConfig[tc]) STATE.tcConfig[tc] = 25; });
+      }
+    }
+
+    saveLocal();
+    syncOverlay(false);
+    toast(`${STATE.transactions.length} transacciones cargadas`, 'success');
+    renderCurrentScreen();
+  } catch(e) {
+    syncOverlay(false);
+    toast('Error al sincronizar: ' + e.message, 'error');
+    console.error('syncFromSheet falló:', e);
+  }
+}
+function excelDateToISO(val) {
+  if (!val) return today();
+  if (typeof val === 'string' && val.includes('-')) return val.slice(0,10);
+  if (typeof val === 'string' && val.includes('/')) {
+    const [d,m,y] = val.split('/');
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  // Excel serial → usar fecha local no UTC
+  const n = parseFloat(val);
+  if (!isNaN(n)) {
+    const d = new Date((n - 25569) * 86400 * 1000);
+    // Compensar offset de zona horaria para obtener fecha local
+    const offset = d.getTimezoneOffset() * 60000;
+    const local = new Date(d.getTime() + offset);
+    const y = local.getFullYear();
+    const m = String(local.getMonth()+1).padStart(2,'0');
+    const day = String(local.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  return today();
+}
+
+// Parsea montos que vienen de Google Sheets, que pueden llegar de dos formas:
+//  (a) número JS nativo ya correcto (ej: 350000) — viene así cuando la celda
+//      es numérica pura, sin formato de texto visible.
+//  (b) string con formato argentino (ej: "350.000" o "350.000,50") — viene
+//      así cuando la celda tiene un number_format aplicado tipo "#,##0.00".
+// parseFloat() interpretaría "350.000" como 350 (punto = decimal en JS),
+// por eso hay que detectar el formato y convertir el separador de miles
+// (punto) y decimal (coma) al formato que JS espera, ANTES de parsear.
+function parseMontoARS(val) {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return val; // ya es número, no tocar
+  let s = val.toString().trim();
+  // Sacar símbolos de moneda y espacios, pero conservar dígitos , . -
+  s = s.replace(/[^\d.,-]/g, '');
+  if (s === '') return 0;
+  const tieneComa = s.includes(',');
+  const tienePunto = s.includes('.');
+  if (tieneComa && tienePunto) {
+    // Formato "350.000,50" → punto=miles (quitar), coma=decimal (a punto)
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (tieneComa && !tienePunto) {
+    // Formato "350000,50" → coma es decimal
+    s = s.replace(',', '.');
+  } else if (tienePunto && !tieneComa) {
+    // Ambiguo: "350.000" (miles) vs "350.5" (decimal).
+    // Regla: si el bloque después del último punto tiene exactamente 3
+    // dígitos Y hay más de un punto O el número total sugiere miles,
+    // tratamos el punto como separador de miles (caso típico ARS).
+    const partes = s.split('.');
+    const ultimaParte = partes[partes.length - 1];
+    if (partes.length > 2 || ultimaParte.length === 3) {
+      // "350.000" o "1.250.000" → todos los puntos son de miles
+      s = s.replace(/\./g, '');
+    }
+    // si no, dejamos el único punto como decimal (ej: "28.5")
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+async function appendToSheet(tx) {
+  if (STATE.isDemo || !STATE.sheetId) return true;
+  const token = await getAccessToken();
+  if (!token) { STATE.offlineQueue.push(tx); saveLocal(); return false; }
+  // Calculamos Año y Mes nosotros mismos, ya que Google Sheets no extiende
+  // fórmulas automáticamente en filas nuevas agregadas vía API (a diferencia
+  // de las Tablas estructuradas de Excel, que sí se autocompletan).
+  const fechaObj = new Date(tx.fecha + 'T00:00:00');
+  const anio = fechaObj.getFullYear();
+  const mesN = fechaObj.getMonth() + 1;
+  const row = [
+    tx.fecha, anio, mesN, tx.cat, tx.desc, tx.medio, tx.banco,
+    tx.cuotas, tx.ncuota, tx.monto, tx.tipo, tx.etiqueta, tx.comp
+  ];
+  const range = encodeURIComponent("'Transacciones'!A:M");
+  const res = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [row] })
+    }
+  );
+  return res.ok;
+}
+
+async function syncNow() {
+  if (STATE.isDemo) { toast('Modo demo — sin sincronización real', 'error'); return; }
+  await syncFromSheet();
+  // Flush offline queue
+  if (STATE.offlineQueue.length > 0) {
+    syncOverlay(true, 'Enviando cambios pendientes...');
+    for (const tx of STATE.offlineQueue) await appendToSheet(tx);
+    STATE.offlineQueue = [];
+    saveLocal();
+    syncOverlay(false);
+    toast('Cola offline sincronizada', 'success');
+  }
+}
+
+// ─── NAVEGACIÓN ────────────────────────────────────────────────────────────
+function showScreen(name) {
+  STATE.currentScreen = name;
+  const titles = { home:'Mis Finanzas', txs:'Movimientos', nueva:'Nueva transacción', stats:'Resumen', config:'Configuración' };
+  document.getElementById('topbar-title').textContent = titles[name] || 'Mis Finanzas';
+  ['home','txs','stats','config'].forEach(n => {
+    const btn = document.getElementById('bnav-' + n);
+    if (btn) btn.classList.toggle('active', n === name);
+  });
+  renderCurrentScreen();
+}
+function renderCurrentScreen() {
+  const s = STATE.currentScreen;
+  if (s === 'home') renderHome();
+  else if (s === 'txs') renderTxs();
+  else if (s === 'nueva') renderNueva();
+  else if (s === 'stats') renderStats();
+  else if (s === 'config') renderConfig();
+}
+
+// ─── CÁLCULOS ──────────────────────────────────────────────────────────────
+function txOfMonth(m, y) {
+  return STATE.transactions.filter(tx => {
+    const d = new Date(tx.fecha + 'T00:00:00');
+    return d.getMonth() === m && d.getFullYear() === y;
+  });
+}
+function cuotaMonth(tx, offset) {
+  // Calcula el mes real de la cuota #offset (1-based) según cierre TC
+  const d = new Date(tx.fecha + 'T00:00:00');
+  let mes = d.getMonth();
+  let anio = d.getFullYear();
+  const esTC = tx.medio && tx.medio.startsWith("Crédito");
+  if (esTC) {
+    const cierre = STATE.tcConfig[tx.medio] || 25;
+    if (d.getDate() > cierre) mes += 1;
+  }
+  mes += (offset - 1);
+  while (mes >= 12) { mes -= 12; anio++; }
+  return { mes, anio };
+}
+function calcBalance(m, y) {
+  let ing = 0, egFijo = 0, egVar = 0;
+  STATE.transactions.forEach(tx => {
+    if (tx.cuotas <= 1) {
+      const d = new Date(tx.fecha + 'T00:00:00');
+      if (d.getMonth() === m && d.getFullYear() === y) {
+        if (tx.tipo === 'Ingreso') ing += tx.monto;
+        else if (tx.tipo === 'Gasto Fijo') egFijo += tx.monto;
+        else if (tx.tipo === 'Gasto Variable') egVar += tx.monto;
+      }
+    } else {
+      // distribuir cuotas
+      const montoCuota = tx.monto / tx.cuotas;
+      for (let c = 1; c <= tx.cuotas; c++) {
+        const { mes, anio } = cuotaMonth(tx, c);
+        if (mes === m && anio === y) {
+          if (tx.tipo === 'Gasto Variable') egVar += montoCuota;
+          else if (tx.tipo === 'Gasto Fijo') egFijo += montoCuota;
+        }
+      }
+    }
+  });
+  return { ing, egFijo, egVar, eg: egFijo + egVar, neto: ing - egFijo - egVar };
+}
+function calcByCategory(m, y) {
+  const map = {};
+  STATE.transactions.forEach(tx => {
+    const addCat = (monto) => { map[tx.cat] = (map[tx.cat] || 0) + monto; };
+    if (tx.cuotas <= 1) {
+      const d = new Date(tx.fecha + 'T00:00:00');
+      if (d.getMonth() === m && d.getFullYear() === y && tx.tipo !== 'Ingreso') addCat(tx.monto);
+    } else {
+      const montoCuota = tx.monto / tx.cuotas;
+      for (let c = 1; c <= tx.cuotas; c++) {
+        const { mes, anio } = cuotaMonth(tx, c);
+        if (mes === m && anio === y && tx.tipo !== 'Ingreso') addCat(montoCuota);
+      }
+    }
+  });
+  return Object.entries(map).sort((a,b) => b[1]-a[1]);
+}
+function tcAlerts() {
+  const now = new Date();
+  const day = now.getDate();
+  return getTarjetas().map(tc => {
+    const cierre = STATE.tcConfig[tc] || 25;
+    const venc = (STATE.tcConfig[tc + '_venc']) || 10;
+    let diasCierre, diasVenc;
+    if (day <= cierre) diasCierre = cierre - day;
+    else diasCierre = new Date(now.getFullYear(), now.getMonth()+1, cierre).getDate() + (new Date(now.getFullYear(), now.getMonth()+1, 0).getDate() - day);
+    if (day <= venc) diasVenc = venc - day;
+    else diasVenc = new Date(now.getFullYear(), now.getMonth()+1, venc) - now;
+    return { tc, cierre, venc, diasCierre, diasVenc: typeof diasVenc === 'number' ? (diasVenc < 0 ? 0 : diasVenc) : diasVenc };
+  });
+}
+
+// ─── PANTALLA: HOME ────────────────────────────────────────────────────────
+function renderHome() {
+  const { ing, eg, neto } = calcBalance(STATE.viewMonth, STATE.viewYear);
+  const bycat = calcByCategory(STATE.viewMonth, STATE.viewYear).slice(0,4);
+  const maxCat = bycat.length ? bycat[0][1] : 1;
+  const alerts = tcAlerts().filter(a => a.diasCierre <= 7 || a.diasVenc <= 7).slice(0,2);
+  const recent = [...STATE.transactions].reverse().slice(0,5);
+
+  document.getElementById('topbar-sub').textContent = mesNombre(STATE.viewMonth) + ' ' + STATE.viewYear;
+  document.getElementById('content').innerHTML = `
+    <div class="month-sel">
+      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+      <span class="month-label">${mesNombre(STATE.viewMonth)} ${STATE.viewYear}</span>
+      <button class="month-btn" onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="balance-card" style="background:linear-gradient(135deg,${neto>=0?'#1D6A3A,#27AE60':'#8B1A1A,#C0392B'} 100%)">
+      <div class="balance-label">Balance neto</div>
+      <div class="balance-amount ${neto>=0?'pos':'neg'}">${fmt(neto)}</div>
+      <div class="balance-row">
+        <div class="balance-mini">
+          <div class="balance-mini-lbl">Ingresos</div>
+          <div class="balance-mini-val ing">${fmtShort(ing)}</div>
+        </div>
+        <div class="balance-mini">
+          <div class="balance-mini-lbl">Egresos</div>
+          <div class="balance-mini-val eg">${fmtShort(eg)}</div>
+        </div>
+        <div class="balance-mini">
+          <div class="balance-mini-lbl">Ahorro</div>
+          <div class="balance-mini-val" style="color:#fff">${ing>0?Math.round(neto/ing*100):0}%</div>
+        </div>
+      </div>
+    </div>
+
+    ${alerts.length ? `
+    <div class="section-title">⚠️ Alertas de tarjetas</div>
+    <div class="tc-alerts">
+      ${alerts.map(a => {
+        const cls = a.diasCierre <= 3 || a.diasVenc <= 3 ? 'urgent' : 'warn';
+        return `<div class="tc-alert ${cls}">
+          <div class="tc-alert-icon">${cls==='urgent'?'🔴':'🟡'}</div>
+          <div class="tc-alert-info">
+            <div class="tc-alert-name">${a.tc.replace('Crédito ','')}</div>
+            <div class="tc-alert-det">Cierre día ${a.cierre} · Venc. día ${a.venc}</div>
+          </div>
+          <div class="tc-alert-dias">${a.diasCierre}d</div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <div class="section-title">Top gastos del mes</div>
+    <div class="bar-chart">
+      ${bycat.map(([cat,val]) => `
+        <div class="bar-row">
+          <div class="bar-label-row">
+            <span>${CAT_EMOJIS[cat]||'📦'} ${cat}</span>
+            <span>${fmt(val)}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${Math.round(val/maxCat*100)}%;background:${val/maxCat>0.7?'var(--red)':val/maxCat>0.4?'var(--orange)':'var(--blue)'}"></div>
+          </div>
+        </div>`).join('') || '<div class="empty"><div class="empty-icon">📊</div><div class="empty-txt">Sin gastos este mes</div></div>'}
+    </div>
+
+    <div class="section-title">Últimos movimientos</div>
+    <div class="card" style="padding:0 16px">
+      <div class="tx-list">
+        ${recent.length ? recent.map(tx => renderTxItem(tx)).join('') :
+          '<div class="empty"><div class="empty-icon">📝</div><div class="empty-txt">Cargá tu primera transacción con el botón +</div></div>'}
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  `;
+}
+
+function changeMonth(dir) {
+  STATE.viewMonth += dir;
+  if (STATE.viewMonth > 11) { STATE.viewMonth = 0; STATE.viewYear++; }
+  if (STATE.viewMonth < 0) { STATE.viewMonth = 11; STATE.viewYear--; }
+  renderHome();
+}
+
+function renderTxItem(tx, showDelete=false) {
+  const esIngreso = tx.tipo === 'Ingreso';
+  const iconClass = esIngreso ? 'ing' : tx.tipo === 'Gasto Fijo' ? 'eg-fijo' : tx.tipo === 'Ahorro/Inversión' ? 'inv' : 'eg-var';
+  const montoClass = esIngreso ? 'ing' : 'eg';
+  const signo = esIngreso ? '+' : '−';
+  const fecha = new Date(tx.fecha + 'T00:00:00');
+  const fechaStr = `${fecha.getDate()}/${fecha.getMonth()+1}`;
+  const cuotasBadge = tx.cuotas > 1 ? ` <span class="pill pill-cuota">${tx.ncuota}/${tx.cuotas}</span>` : '';
+  const tcBadge = (tx.medio && tx.medio.startsWith("Crédito")) ? ` <span class="pill pill-tc">TC</span>` : '';
+  const deleteBtn = showDelete
+    ? `<button onclick="confirmarBorrarTx('${tx.id}')" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:var(--red);font-size:18px;flex-shrink:0" title="Borrar transacción">🗑️</button>`
+    : '';
+  return `
+    <div class="tx-item" id="tx-${tx.id}" onclick="toggleDeleteTx('${tx.id}')" style="cursor:pointer">
+      <div class="tx-icon ${iconClass}">${CAT_EMOJIS[tx.cat]||'💰'}</div>
+      <div class="tx-info">
+        <div class="tx-cat">${tx.cat}${cuotasBadge}${tcBadge}</div>
+        <div class="tx-det">${fechaStr} · ${tx.desc||tx.medio}</div>
+      </div>
+      <div class="tx-right" style="display:flex;align-items:center;gap:4px">
+        <div>
+          <div class="tx-monto ${montoClass}">${signo}${fmtShort(tx.monto)}</div>
+          <div class="tx-medio">${tx.medio.replace('Crédito ','TC ').replace('Débito ','Déb. ')}</div>
+        </div>
+        ${deleteBtn}
+      </div>
+    </div>`;
+}
+
+let txSeleccionada = null;
+function toggleDeleteTx(txId) {
+  if (txSeleccionada === txId) {
+    // Segunda vez que toca: colapsar
+    txSeleccionada = null;
+    renderTxs();
+  } else {
+    txSeleccionada = txId;
+    renderTxs();
+  }
+}
+
+async function confirmarBorrarTx(txId) {
+  const tx = STATE.transactions.find(t => t.id === txId);
+  if (!tx) return;
+  const confirmMsg = `¿Borrar "${tx.cat}" ${fmtShort(tx.monto)} del ${tx.fecha}?\n\n⚠️ IMPORTANTE: esto limpia el contenido de la fila en el Sheet pero NO elimina la fila (así no se rompen las fórmulas de _EXP).`;
+  if (!confirm(confirmMsg)) return;
+
+  // 1. Borrar del estado local
+  STATE.transactions = STATE.transactions.filter(t => t.id !== txId);
+  txSeleccionada = null;
+  saveLocal();
+
+  // 2. Borrar del Sheet: limpiar el contenido de la fila (no eliminarla)
+  if (!STATE.isDemo && STATE.sheetId) {
+    await borrarFilaSheet(tx);
+  }
+
+  renderTxs();
+}
+
+async function borrarFilaSheet(tx) {
+  // Para borrar la fila correcta en el Sheet, la buscamos por fecha + categoría + monto
+  // porque el ID local (STATE.transactions index) no corresponde 1:1 con la fila del Sheet
+  const token = await getAccessToken();
+  if (!token) { toast('Sin conexión — borrado solo local', 'error'); return; }
+
+  try {
+    // Leer todas las filas para encontrar la correcta
+    const range = encodeURIComponent("'Transacciones'!A3:M1002");
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/${range}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) throw new Error('No se pudo leer el Sheet');
+    const data = await res.json();
+    const rows = data.values || [];
+
+    // Encontrar la fila que coincide con fecha + categoría + monto
+    let filaSheet = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const fechaSheet = r[0] ? String(r[0]).trim() : '';
+      const catSheet   = r[3] ? String(r[3]).trim() : '';
+      const montoSheet = parseMontoARS(r[9]);
+      // Comparar fecha (puede estar en formato DD/MM/YYYY o YYYY-MM-DD)
+      const fechaNorm = fechaSheet.includes('/')
+        ? fechaSheet.split('/').reverse().join('-')  // DD/MM/YYYY → YYYY-MM-DD
+        : fechaSheet.slice(0,10);
+      if (fechaNorm === tx.fecha && catSheet === tx.cat && Math.abs(montoSheet - tx.monto) < 1) {
+        filaSheet = i + 3; // +3 porque los datos empiezan en fila 3 del Sheet
+        break;
+      }
+    }
+
+    if (filaSheet === -1) {
+      toast('Transacción no encontrada en el Sheet (ya puede estar borrada)', 'error');
+      return;
+    }
+
+    // Limpiar el contenido de esa fila (columnas A a M) SIN eliminar la fila
+    const clearRange = encodeURIComponent(`'Transacciones'!A${filaSheet}:M${filaSheet}`);
+    const clearRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/${clearRange}:clear`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+      }
+    );
+
+    if (clearRes.ok) {
+      toast('✅ Transacción borrada del Sheet (fila vacía, fórmulas intactas)', 'success');
+    } else {
+      toast('Borrado local OK, error al borrar del Sheet', 'error');
+    }
+  } catch(e) {
+    console.error('borrarFilaSheet error:', e);
+    toast('Borrado local OK — ' + e.message, 'error');
+  }
+}
+
+// ─── PANTALLA: MOVIMIENTOS ─────────────────────────────────────────────────
+function renderTxs() {
+  const txs = txOfMonth(STATE.viewMonth, STATE.viewYear).reverse();
+  document.getElementById('topbar-sub').textContent = mesNombre(STATE.viewMonth) + ' ' + STATE.viewYear;
+  document.getElementById('content').innerHTML = `
+    <div class="month-sel">
+      <button class="month-btn" onclick="changeTxMonth(-1)">‹</button>
+      <span class="month-label">${mesNombre(STATE.viewMonth)} ${STATE.viewYear}</span>
+      <button class="month-btn" onclick="changeTxMonth(1)">›</button>
+    </div>
+    ${txs.length ? `<div style="padding:6px 16px 2px;font-size:11px;color:var(--gray-4)">Tocá una transacción para borrarla 🗑️</div>` : ''}
+    <div class="card" style="padding:0 16px;margin-top:8px">
+      <div class="tx-list">
+        ${txs.length ? txs.map(tx => renderTxItem(tx, txSeleccionada === tx.id)).join('') :
+          '<div class="empty"><div class="empty-icon">📭</div><div class="empty-txt">Sin movimientos en este período</div></div>'}
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  `;
+}
+function changeTxMonth(dir) {
+  STATE.viewMonth += dir;
+  if (STATE.viewMonth > 11) { STATE.viewMonth = 0; STATE.viewYear++; }
+  if (STATE.viewMonth < 0) { STATE.viewMonth = 11; STATE.viewYear--; }
+  renderTxs();
+}
+
+// ─── PANTALLA: NUEVA TRANSACCIÓN ───────────────────────────────────────────
+function renderNueva() {
+  document.getElementById('topbar-sub').textContent = '';
+  document.getElementById('content').innerHTML = `
+    <div class="form-screen">
+      <div class="tipo-toggle">
+        <button class="tipo-opt active-eg" id="btn-egreso" onclick="setFormTipo('eg')">− Egreso</button>
+        <button class="tipo-opt" id="btn-ingreso" onclick="setFormTipo('ing')">+ Ingreso</button>
+      </div>
+
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha" value="${today()}">
+      </div>
+
+      <div class="field">
+        <label>Categoría</label>
+        <select id="f-cat" onchange="onCatChange()">
+          <option value="">Seleccioná una categoría...</option>
+          <optgroup id="optg-ing" label="— Ingresos —" style="display:none">
+            ${getCatsIng().map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </optgroup>
+          <optgroup id="optg-gf" label="— Gastos Fijos —">
+            ${getCatsGF().map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </optgroup>
+          <optgroup id="optg-gv" label="— Gastos Variables —">
+            ${getCatsGV().map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Descripción (opcional)</label>
+        <input type="text" id="f-desc" placeholder="Ej: Jumbo — compra semanal">
+      </div>
+
+      <div class="field">
+        <label>Monto total</label>
+        <div class="monto-wrap">
+          <span class="monto-prefix">$</span>
+          <input type="number" id="f-monto" placeholder="0" min="0" step="100" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Medio de pago</label>
+          <select id="f-medio" onchange="onMedioChange()">
+            <option value="">Seleccioná...</option>
+            ${getMedios().map(m=>`<option value="${m}">${m}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Cuenta</label>
+          <select id="f-banco">
+            <option value="">Seleccioná cuenta...</option>
+            ${getCuentas().map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div id="cuotas-section" style="display:none">
+        <div class="cuotas-section">
+          <div class="cuotas-section-title">💳 Cuotas</div>
+          <div class="field-row" style="margin-bottom:0">
+            <div class="field" style="margin-bottom:0">
+              <label>Cuotas totales</label>
+              <input type="number" id="f-cuotas" value="1" min="1" max="60" inputmode="numeric" onchange="onCuotasChange()">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>N° cuota</label>
+              <input type="number" id="f-ncuota" value="1" min="1" max="60" inputmode="numeric">
+            </div>
+          </div>
+          <div class="cierre-info" id="cierre-info" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Tipo</label>
+        <select id="f-tipo">
+          ${TIPOS.map(t=>`<option value="${t}" ${t==='Gasto Variable'?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Etiqueta / Proyecto</label>
+        <select id="f-etiq">
+          ${getEtiquetas().map(e=>`<option value="${e}">${e}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>N° Comprobante (opcional)</label>
+        <input type="text" id="f-comp" placeholder="TX00123">
+      </div>
+
+      <button class="btn-submit" id="btn-guardar" onclick="guardarTx()">Guardar transacción</button>
+    </div>
+  `;
+}
+
+let formTipo = 'eg';
+function setFormTipo(t) {
+  formTipo = t;
+  document.getElementById('btn-egreso').className = 'tipo-opt' + (t==='eg'?' active-eg':'');
+  document.getElementById('btn-ingreso').className = 'tipo-opt' + (t==='ing'?' active-ing':'');
+  const ingOG = document.getElementById('optg-ing');
+  const gfOG = document.getElementById('optg-gf');
+  const gvOG = document.getElementById('optg-gv');
+  if (ingOG) {
+    ingOG.style.display = t==='ing' ? '' : 'none';
+    gfOG.style.display = t==='eg' ? '' : 'none';
+    gvOG.style.display = t==='eg' ? '' : 'none';
+    // Actualizar opciones con listas dinámicas del Sheet
+    if (t === 'ing') {
+      ingOG.innerHTML = getCatsIng().map(c=>`<option value="${c}">${c}</option>`).join('');
+    } else {
+      gfOG.innerHTML = getCatsGF().map(c=>`<option value="${c}">${c}</option>`).join('');
+      gvOG.innerHTML = getCatsGV().map(c=>`<option value="${c}">${c}</option>`).join('');
+    }
+  }
+  const tipoSel = document.getElementById('f-tipo');
+  if (tipoSel) tipoSel.value = t==='ing' ? 'Ingreso' : 'Gasto Variable';
+}
+
+function onMedioChange() {
+  const medio = document.getElementById('f-medio')?.value;
+  const sec = document.getElementById('cuotas-section');
+  if (!sec) return;
+  const esTC = medio && medio.startsWith("Crédito");
+  sec.style.display = esTC ? 'block' : 'none';
+  if (esTC) onCuotasChange();
+}
+
+function onCuotasChange() {
+  const medio = document.getElementById('f-medio')?.value;
+  const cuotas = parseInt(document.getElementById('f-cuotas')?.value) || 1;
+  const info = document.getElementById('cierre-info');
+  if (!info || !TARJETAS.includes(medio)) return;
+  const cierre = STATE.tcConfig[medio] || 25;
+  const fecha = document.getElementById('f-fecha')?.value;
+  const d = fecha ? new Date(fecha + 'T00:00:00') : new Date();
+  const mesInicio = d.getDate() > cierre ? 'el próximo mes' : 'este mes';
+  info.style.display = 'block';
+  info.textContent = `Cierre día ${cierre} — Primera cuota entra ${mesInicio}. Cuota aprox: ${fmt(parseFloat(document.getElementById('f-monto')?.value||0)/cuotas)}/mes`;
+}
+
+function onCatChange() {
+  const cat = document.getElementById('f-cat')?.value;
+  if (!cat) return;
+  const esIng = CATS_ING.includes(cat);
+  const esGF = CATS_GF.includes(cat);
+  const tipoSel = document.getElementById('f-tipo');
+  if (tipoSel) tipoSel.value = esIng ? 'Ingreso' : esGF ? 'Gasto Fijo' : 'Gasto Variable';
+}
+
+async function guardarTx() {
+  const fecha = document.getElementById('f-fecha')?.value;
+  const cat = document.getElementById('f-cat')?.value;
+  const desc = document.getElementById('f-desc')?.value || '';
+  const monto = parseFloat(document.getElementById('f-monto')?.value) || 0;
+  const medio = document.getElementById('f-medio')?.value;
+  const banco = document.getElementById('f-banco')?.value || 'N/A';
+  const cuotas = parseInt(document.getElementById('f-cuotas')?.value) || 1;
+  const ncuota = parseInt(document.getElementById('f-ncuota')?.value) || 1;
+  const tipo = document.getElementById('f-tipo')?.value;
+  const etiq = document.getElementById('f-etiq')?.value || 'Sin etiqueta';
+  const comp = document.getElementById('f-comp')?.value || '';
+
+  if (!fecha || !cat || !monto || !medio || !tipo) {
+    toast('Completá fecha, categoría, monto, medio de pago y tipo.', 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-guardar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  const tx = { id: uid(), fecha, cat, desc, medio, banco, cuotas, ncuota, monto, tipo, etiqueta: etiq, comp };
+  STATE.transactions.push(tx);
+  saveLocal();
+
+  // Sync to sheet
+  let synced = false;
+  if (!STATE.isDemo && STATE.sheetId) {
+    try { synced = await appendToSheet(tx); } catch(e) { synced = false; }
+  } else { synced = true; }
+
+  if (!synced) {
+    STATE.offlineQueue.push(tx);
+    saveLocal();
+    toast(`Guardado localmente. Se sincronizará cuando vuelva internet.`, 'success');
+  } else {
+    toast(`${tipo === 'Ingreso' ? '💚' : '🔴'} ${cat} — ${fmt(monto)} guardado`, 'success');
+  }
+
+  STATE.viewMonth = new Date(fecha+'T00:00:00').getMonth();
+  STATE.viewYear  = new Date(fecha+'T00:00:00').getFullYear();
+  showScreen('home');
+}
+
+// ─── PANTALLA: ESTADÍSTICAS ────────────────────────────────────────────────
+function renderStats() {
+  const { ing, egFijo, egVar, eg, neto } = calcBalance(STATE.viewMonth, STATE.viewYear);
+  const ahorro = ing > 0 ? Math.round(neto/ing*100) : 0;
+  const bycat = calcByCategory(STATE.viewMonth, STATE.viewYear);
+  const maxCat = bycat.length ? bycat[0][1] : 1;
+
+  // Cuotas pendientes próximos 3 meses
+  const now = new Date();
+  const cuotasFuturas = [];
+  for (let off = 1; off <= 3; off++) {
+    let m = now.getMonth() + off, y = now.getFullYear();
+    if (m >= 12) { m -= 12; y++; }
+    let total = 0;
+    STATE.transactions.filter(tx => tx.cuotas > 1).forEach(tx => {
+      const montoCuota = tx.monto / tx.cuotas;
+      for (let c = 1; c <= tx.cuotas; c++) {
+        const { mes, anio } = cuotaMonth(tx, c);
+        if (mes === m && anio === y) total += montoCuota;
+      }
+    });
+    cuotasFuturas.push({ mes: mesNombre(m).slice(0,3), total });
+  }
+
+  document.getElementById('topbar-sub').textContent = mesNombre(STATE.viewMonth) + ' ' + STATE.viewYear;
+  document.getElementById('content').innerHTML = `
+    <div class="month-sel">
+      <button class="month-btn" onclick="changeStatsMonth(-1)">‹</button>
+      <span class="month-label">${mesNombre(STATE.viewMonth)} ${STATE.viewYear}</span>
+      <button class="month-btn" onclick="changeStatsMonth(1)">›</button>
+    </div>
+    <div style="height:12px"></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">Ingresos</div><div class="stat-val pos">${fmtShort(ing)}</div></div>
+      <div class="stat-card"><div class="stat-lbl">Egresos</div><div class="stat-val neg">${fmtShort(eg)}</div></div>
+      <div class="stat-card"><div class="stat-lbl">Balance neto</div><div class="stat-val ${neto>=0?'pos':'neg'}">${fmtShort(neto)}</div></div>
+      <div class="stat-card"><div class="stat-lbl">Tasa ahorro</div><div class="stat-val ${ahorro>=0?'pos':'neg'}">${ahorro}%</div></div>
+    </div>
+
+    ${cuotasFuturas.some(c=>c.total>0) ? `
+    <div class="section-title">Cuotas comprometidas</div>
+    <div class="card card-sm">
+      ${cuotasFuturas.map(c => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-2)">
+          <span style="font-size:14px;color:var(--gray-6)">${c.mes}</span>
+          <span style="font-size:15px;font-weight:600;color:${c.total>0?'var(--red)':'var(--gray-4)'}">${c.total>0?fmt(c.total):'—'}</span>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div class="section-title">Desglose por categoría</div>
+    <div class="bar-chart" style="margin-bottom:8px">
+      ${bycat.slice(0,8).map(([cat,val]) => `
+        <div class="bar-row">
+          <div class="bar-label-row">
+            <span>${CAT_EMOJIS[cat]||'📦'} ${cat}</span>
+            <span style="font-weight:600">${fmt(val)}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${Math.round(val/maxCat*100)}%;background:${val/maxCat>0.7?'var(--red)':val/maxCat>0.4?'var(--orange)':'var(--blue)'}"></div>
+          </div>
+        </div>`).join('') || '<div class="empty"><div class="empty-icon">📊</div><div class="empty-txt">Sin datos para mostrar</div></div>'}
+    </div>
+  `;
+}
+function changeStatsMonth(dir) {
+  STATE.viewMonth += dir;
+  if (STATE.viewMonth > 11) { STATE.viewMonth = 0; STATE.viewYear++; }
+  if (STATE.viewMonth < 0) { STATE.viewMonth = 11; STATE.viewYear--; }
+  renderStats();
+}
+
+// ─── PANTALLA: CONFIGURACIÓN ───────────────────────────────────────────────
+function renderConfig() {
+  document.getElementById('topbar-sub').textContent = STATE.user?.email || '';
+  const alerts = tcAlerts();
+  document.getElementById('content').innerHTML = `
+    <div style="height:16px"></div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Cuenta</div>
+      <div class="card card-sm">
+        <div class="cfg-row">
+          <div><div class="cfg-row-label">${STATE.user?.name || 'Usuario'}</div><div class="cfg-row-sub">${STATE.user?.email || ''}</div></div>
+          ${STATE.isDemo ? '<span style="font-size:12px;color:var(--orange);font-weight:600">MODO DEMO</span>' : '<span class="cfg-row-val">✅ Conectado</span>'}
+        </div>
+        ${STATE.sheetId ? `<div class="cfg-row">
+          <div><div class="cfg-row-label">Google Sheet conectado</div><div class="cfg-row-sub" style="font-size:11px;word-break:break-all">${STATE.sheetId.slice(0,28)}...</div></div>
+          <button onclick="cambiarSheet()" style="padding:6px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Cambiar</button>
+        </div>` : '<div class="cfg-row"><div class="cfg-row-label" style="color:var(--orange)">Sin Sheet conectado</div><button onclick="cambiarSheet()" style="padding:6px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Conectar</button></div>'}
+        <div class="cfg-row" style="cursor:pointer" onclick="syncNow()">
+          <div class="cfg-row-label">Sincronizar ahora</div>
+          <span class="cfg-row-val">↻</span>
+        </div>
+        ${STATE.offlineQueue.length > 0 ? `<div class="cfg-row"><div class="cfg-row-label" style="color:var(--orange)">Pendientes offline</div><div class="cfg-row-val" style="color:var(--orange)">${STATE.offlineQueue.length}</div></div>` : ''}
+      </div>
+    </div>
+
+    <div class="cfg-section">
+      <div class="cfg-section-title">Tarjetas de crédito — día de cierre</div>
+      <div class="card card-sm">
+        ${getTarjetas().map(tc => `
+          <div class="cfg-row">
+            <div>
+              <div class="cfg-row-label">${tc.replace('Crédito ','')}</div>
+              <div class="cfg-row-sub">Cierre día ${STATE.tcConfig[tc]||25} · Venc. día ${STATE.tcConfig[tc+'_venc']||10}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="cfg-input" type="number" id="cierre_${tc.replace(/ /g,'_')}" value="${STATE.tcConfig[tc]||25}" min="1" max="31" placeholder="Cierre" style="width:60px" onchange="saveCfgTC()">
+            </div>
+          </div>`).join('')}
+        <div style="font-size:12px;color:var(--gray-4);padding:8px 0;line-height:1.5">
+          Si comprás <strong>antes</strong> del día de cierre → cuota 1 entra este mes.<br>
+          Si comprás <strong>después</strong> → cuota 1 entra el mes siguiente.
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section">
+      <div class="cfg-section-title">Economía</div>
+      <div class="card card-sm">
+        <div class="cfg-row">
+          <div class="cfg-row-label">USD Blue (ARS)</div>
+          <input class="cfg-input" type="number" id="cfg-usd" value="${STATE.usdBlue}" onchange="saveCfgEco()">
+        </div>
+        <div class="cfg-row">
+          <div class="cfg-row-label">Inflación mensual esperada</div>
+          <input class="cfg-input" type="number" id="cfg-infl" value="${Math.round(STATE.inflacion*100)}" min="0" max="100" onchange="saveCfgEco()">
+          <span style="font-size:12px;color:var(--gray-4);margin-left:4px">%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section">
+      <div class="cfg-section-title">Acerca de</div>
+      <div class="card card-sm">
+        <div class="cfg-row"><div class="cfg-row-label">Versión</div><div class="cfg-row-val">1.0</div></div>
+        <div class="cfg-row"><div class="cfg-row-label">Transacciones guardadas</div><div class="cfg-row-val">${STATE.transactions.length}</div></div>
+        <div class="cfg-row" style="cursor:pointer;color:var(--red)" onclick="clearAll()"><div class="cfg-row-label" style="color:var(--red)">Borrar datos locales</div></div>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  `;
+}
+
+async function saveCfgTC() {
+  getTarjetas().forEach(tc => {
+    const key = `cierre_${tc.replace(/ /g,'_')}`;
+    const el = document.getElementById(key);
+    if (el) STATE.tcConfig[tc] = parseInt(el.value) || 25;
+  });
+  saveLocal();
+  toast('Guardado localmente...', 'success');
+  // Sincronizar con _CONFIG del Sheet
+  await syncCfgToSheet();
+}
+
+async function saveCfgEco() {
+  STATE.usdBlue = parseFloat(document.getElementById('cfg-usd')?.value) || 1300;
+  STATE.inflacion = (parseFloat(document.getElementById('cfg-infl')?.value) || 4) / 100;
+  saveLocal();
+  toast('Guardado localmente...', 'success');
+  // Sincronizar con _CONFIG del Sheet
+  await syncCfgToSheet();
+}
+
+// Escribe los valores de Config de la app en _CONFIG del Sheet.
+// Agrega una nueva fila con la fecha de hoy en cada tabla histórica.
+async function syncCfgToSheet() {
+  if (STATE.isDemo || !STATE.sheetId) return;
+  const token = await getAccessToken();
+  if (!token) { toast('Sin conexión a Google — cambios guardados localmente', 'error'); return; }
+
+  try {
+    const hoy = today();
+    const promises = [];
+
+    // ── Tabla TC (cols A-E de _CONFIG): una fila por tarjeta con fecha hoy ──
+    const rowsTC = TARJETAS.map(tc => [
+      tc,                              // A: Tarjeta
+      hoy,                             // B: Vigente_Desde
+      STATE.tcConfig[tc] || 25,        // C: Dia_Cierre
+      STATE.tcConfig[tc+'_venc'] || 10, // D: Dia_Venc
+      0                                // E: Límite (0 = sin cambio, mantiene el anterior)
+    ]);
+    promises.push(
+      fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/`+
+        encodeURIComponent("'_CONFIG'!A:E")+
+        `:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: rowsTC })
+        }
+      )
+    );
+
+    // ── Tabla USD (cols G-K de _CONFIG): una fila con fecha hoy ──
+    const rowUSD = [[
+      hoy,                   // G: Fecha_Desde
+      '',                    // H: USD_Oficial (no se edita desde la app)
+      '',                    // I: USD_MEP (no se edita desde la app)
+      STATE.usdBlue,         // J: USD_Blue
+      STATE.inflacion        // K: Inflacion_Mensual
+    ]];
+    promises.push(
+      fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${STATE.sheetId}/values/`+
+        encodeURIComponent("'_CONFIG'!G:K")+
+        `:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: rowUSD })
+        }
+      )
+    );
+
+    const results = await Promise.all(promises);
+    const allOk = results.every(r => r.ok);
+    if (allOk) {
+      toast('✅ Configuración sincronizada con el Sheet', 'success');
+    } else {
+      toast('Guardado local OK, pero no se pudo sincronizar con el Sheet', 'error');
+    }
+  } catch(e) {
+    console.error('syncCfgToSheet error:', e);
+    toast('Guardado local OK — ' + e.message, 'error');
+  }
+}
+function cambiarSheet() {
+  // Ocultar la app y mostrar la pantalla de URL del Sheet
+  // Mantiene la sesión de Google activa — solo cambia el Sheet ID
+  document.getElementById('app').style.display = 'none';
+  const screen = document.getElementById('sheet-url-screen');
+  screen.style.display = 'block';
+  // Pre-limpiar el campo para que no confunda con el ID viejo
+  const input = document.getElementById('sheet-url-input');
+  if (input) input.value = '';
+  // Agregar nota aclaratoria
+  const nota = document.getElementById('cambiar-sheet-nota');
+  if (!nota) {
+    const div = document.createElement('div');
+    div.id = 'cambiar-sheet-nota';
+    div.style = 'background:#D5F0DC;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#1D6A3A;';
+    div.innerHTML = '✅ Sesión de Google activa. Solo pegá la URL del <strong>nuevo Google Sheet</strong> (el v5 que convertiste).';
+    screen.querySelector('button').before(div);
+  }
+}
+
+function clearAll() {
+  if (!confirm('¿Borrar todos los datos locales? (No afecta el Google Sheet)')) return;
+  localStorage.clear(); STATE.transactions = []; STATE.offlineQueue = [];
+  toast('Datos locales borrados', 'success');
+  renderConfig();
+}
+
+// ─── LAUNCH ────────────────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('sheet-url-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const u = STATE.user;
+  if (u) document.getElementById('user-avatar').textContent = u.initials || u.name?.[0] || '?';
+  showScreen('home');
+}
+
+// ─── ONLINE/OFFLINE ────────────────────────────────────────────────────────
+window.addEventListener('online', () => {
+  STATE.isOnline = true;
+  document.getElementById('offline-banner')?.classList.remove('show');
+  if (STATE.offlineQueue.length > 0) syncNow();
+});
+window.addEventListener('offline', () => {
+  STATE.isOnline = false;
+  document.getElementById('offline-banner')?.classList.add('show');
+});
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  loadLocal();
+  if (!navigator.onLine) document.getElementById('offline-banner')?.classList.add('show');
+  if (STATE.user && (STATE.sheetId || STATE.isDemo)) {
+    launchApp();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+});
+</script>
+<script>
+// Registrar Service Worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(reg => console.log("SW registrado:", reg.scope))
+      .catch(err => console.warn("SW error:", err));
+    // Escuchar mensajes del SW (sync)
+    navigator.serviceWorker.addEventListener("message", e => {
+      if (e.data?.type === "SYNC_READY") syncNow();
+    });
+  });
+}
+// Manejar ?screen= en URL (para shortcut del manifest)
+const urlParams = new URLSearchParams(window.location.search);
+const initScreen = urlParams.get("screen");
+if (initScreen) window.addEventListener("load", () => setTimeout(() => showScreen(initScreen), 500));
+</script>
+</body>
+</html>
+<!-- Google Identity Services (OAuth2) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// ─── GOOGLE OAUTH2 (reemplazar con tu Client ID) ────────────────────────
+const GOOGLE_CLIENT_ID = '985799466589-c9r5jj1kfjm6p1g3p4i276p7n4dvptta.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
+let tokenClient = null;
+
+function initGoogleAuth() {
+  if (typeof google === 'undefined' || !google.accounts) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: SCOPES,
+    callback: (response) => {
+      if (response.error) { toast('Error de autenticación: ' + response.error, 'error'); return; }
+      STATE.accessToken = response.access_token;
+      // Fetch user profile
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${STATE.accessToken}` }
+      }).then(r => r.json()).then(info => {
+        STATE.user = {
+          name: info.name || 'Usuario',
+          email: info.email || '',
+          initials: (info.name || 'U').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase()
+        };
+        saveLocal();
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('sheet-url-screen').style.display = 'block';
+      });
+    },
+  });
+}
+
+// Override handleGoogleSignIn to use real OAuth
+function handleGoogleSignIn() {
+  if (tokenClient) {
+    tokenClient.requestAccessToken();
+  } else {
+    initGoogleAuth();
+    setTimeout(() => { if (tokenClient) tokenClient.requestAccessToken(); }, 1000);
+  }
+}
+
+// Override getAccessToken to use stored token with refresh
+async function getAccessToken() {
+  if (STATE.accessToken) return STATE.accessToken;
+  return new Promise((resolve) => {
+    // Client ID configured — proceed with OAuth
+    if (!tokenClient) initGoogleAuth();
+    const orig = tokenClient?.callback;
+    if (tokenClient) {
+      tokenClient.callback = (r) => {
+        if (!r.error) { STATE.accessToken = r.access_token; resolve(r.access_token); }
+        else resolve(null);
+        tokenClient.callback = orig;
+      };
+      tokenClient.requestAccessToken({ prompt: '' }); // silent refresh
+    } else { resolve(null); }
+  });
+}
+
+// ─── SERVICE WORKER ────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registrado:', reg.scope);
+    }).catch(err => console.log('SW error:', err));
+
+    // Listen for sync messages from SW
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'SYNC_NOW') syncNow();
+    });
+  });
+}
+
+// ─── DEEP LINK: ?screen=nueva (shortcut desde pantalla de inicio) ─────────
+window.addEventListener('DOMContentLoaded', () => {
+  initGoogleAuth();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('screen') === 'nueva' && STATE.user) {
+    setTimeout(() => showScreen('nueva'), 300);
+  }
+});
+
+// ─── BACKGROUND SYNC (cuando vuelve internet) ──────────────────────────────
+window.addEventListener('online', () => {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(sw => sw.sync.register('sync-transactions'));
+  }
+});
+</script>
